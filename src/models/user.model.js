@@ -2,10 +2,7 @@ import mongoose from 'mongoose'
 
 const userSchema = mongoose.Schema({
 
-    firstName : {
-        type:String,
-    },
-    lastName : {
+    name : {
         type:String,
     },
     age : {
