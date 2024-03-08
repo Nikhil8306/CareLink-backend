@@ -1,5 +1,4 @@
 import jwt from 'jsonwebtoken'
-import bcrypt from 'bcrypt'
 
 import User from '../models/user.model.js'
 
@@ -39,16 +38,25 @@ const register = async (req, res)=>{
         if (!mobile || mobile === '') {
             return res.status(400).json({message:"Mobile number is required"})
         }
-        let user = await User.create({
-            mobile
-        })
+        let user = await User.findOne({mobile})
+
+
+        if (!user) {
+            user = await User.create({
+                mobile
+            })
+        }
+
 
         const {refreshToken, accessToken} = await generateRefreshAndAccessToken(user._id)
 
-
+        const options = {
+            httpOnly:true,
+            secure:true
+        }
         res.status(200)
-            .cookie("accessToken", accessToken)
-            .cookie("refreshToken", refreshToken)
+            .cookie("accessToken", accessToken, options)
+            .cookie("refreshToken", refreshToken, options)
             .json({
                 success: true,
                 accessToken:accessToken,
@@ -62,8 +70,53 @@ const register = async (req, res)=>{
 
 }
 
+const refreshAccessToken = async (req, res)=>{
+
+    const oldRefreshToken = req.body.refreshToken;
+
+    if (!oldRefreshToken || oldRefreshToken === ''){
+        return res.status(401).json({success:false, message:"Unauthorized"})
+    }
+
+    try{
+        const decodeToken = jwt.verify(oldRefreshToken, process.env.REFRESH_TOKEN_SECRET);
+
+        if (!decodeToken){
+            return res.status(401).json({success:false, message:"Invalid refresh token"})
+        }
+        const user = await User.findById(decodeToken._id);
+
+        if (!user){
+            return res.status(401).json({success:false, message:"Invalid refresh token"})
+        }
+
+        if (user.refreshToken !== oldRefreshToken){
+            return res.status(401).json({success:false, message:"Refresh Token expired or already in use"})
+        }
+
+        const { refreshToken, accessToken } = await generateRefreshAndAccessToken(user._id);
+
+        const options = {
+            httpOnly: true,
+            secure: true
+        }
+
+        res.status(200)
+            .cookie("accessToken",accessToken, options)
+            .cookie("refreshToken", refreshToken, options)
+            .json({success:true,
+                message:"Successfully generated new access and refresh token",
+                accessToken:accessToken,
+                refreshToken:refreshToken
+            })
+    }
+    catch (err){
+        console.log(err)
+        return res.status(500).json({success:false, message:"Cannot refresh access token"});
+    }
+
+}
 
 
 
-
-export { register }
+export { register , refreshAccessToken }

@@ -13,13 +13,17 @@ const userSchema = mongoose.Schema({
     },
     mobile : {
         type:String,
-        required:true
+        required:true,
+        unique:true
     },
     gender : {
         type:String,
         enum:["male", "female", "other"]
     },
     profileUrl : {
+        type:String
+    },
+    refreshToken : {
         type:String
     }
 })
