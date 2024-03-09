@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken'
-
 import User from '../models/user.model.js'
+
 
 const generateRefreshAndAccessToken = async (_id) => {
 
@@ -33,6 +33,7 @@ const generateRefreshAndAccessToken = async (_id) => {
 
 
 const register = async (req, res)=>{
+
     try{
         const mobile = req.body.mobile;
         if (!mobile || mobile === '') {
