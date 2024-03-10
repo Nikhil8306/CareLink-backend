@@ -68,7 +68,6 @@ const register = async (req, res)=>{
         console.log(err)
         return res.status(501).json({success: false, message: "Cannot Register User"})
     }
-
 }
 
 const refreshAccessToken = async (req, res)=>{
@@ -115,11 +114,57 @@ const refreshAccessToken = async (req, res)=>{
         console.log(err)
         return res.status(500).json({success:false, message:"Cannot refresh access token"});
     }
-
 }
 
 
+const logout = async (req, res)=>{
+    // From 'chai aur code' :)
+    try{
+        await User.findByIdAndUpdate(
+            req.user._id,
+            {
+                $unset: {
+                    refreshToken: 1 // this removes the field from document
+                }
+            },
+            {
+                new: true
+            }
+        )
+
+        const options = {
+            httpOnly:true,
+            secure:true
+        }
+
+        res.status(200)
+            .clearCookie('refreshToken', options)
+            .clearCookie('accessToken', options)
+            .json({success:true, message:"Successfully logged out"})
+    }
+
+    catch(err){
+        res.status(500).json({success:false, message:"Cannot logout the user"})
+    }
+}
 
 
+const updateProfile = async ( req, res )=>{
 
-export { register , refreshAccessToken }
+    const {name , age, gender } = req.body;
+
+
+    const user = await User.findById(req.user._id);
+
+    user.name = name;
+    user.age = age;
+    user.gender = gender;
+
+    await user.save({validateBeforeSave:false})
+
+    // console.log(user)
+    res.status(200).json({success:true, message:"Saved data successfully"});
+}
+
+
+export { register , refreshAccessToken , logout , updateProfile }

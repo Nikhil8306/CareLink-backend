@@ -50,7 +50,7 @@ const verifyOTP =  ( req, res, next )=>{
                     next()
                 }
                 else{
-                    return res.status(400).json({sucess:false, message:"OTP not verified"})
+                    return res.status(401).json({sucess:false, message:"Incorrect OTP"})
                 }
             })
             .catch((err)=>{
