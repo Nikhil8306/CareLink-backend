@@ -24,7 +24,7 @@ Router.route('/logout')
     .post(checkAuth, logout)
 
 Router.route('/updateProfile')
-    .post(checkAuth, updateProfile)
+    .post(checkAuth, upload.single('profile'), updateProfile)
 
 
 

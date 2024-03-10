@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken'
 import User from '../models/user.model.js'
-
+import {uploadOnCloudinary} from "../util/cloudinary.util.js";
+import fs from 'fs'
 
 const generateRefreshAndAccessToken = async (_id) => {
 
@@ -153,14 +154,23 @@ const updateProfile = async ( req, res )=>{
 
     const {name , age, gender } = req.body;
 
-
     const user = await User.findById(req.user._id);
+
+    if (!req.file?.path) return res.status(500).json({sucess:false, message:"Error uploading profile"})
+
+    const upload = await uploadOnCloudinary(req.file?.path)
+
+    fs.unlinkSync(req.file?.path)
+
+    if (!upload || !upload.url) return res.status(500).json({success:false, message:"Error uploading Profile image"})
 
     user.name = name;
     user.age = age;
     user.gender = gender;
+    user.profileUrl = upload.url
 
     await user.save({validateBeforeSave:false})
+
 
     // console.log(user)
     res.status(200).json({success:true, message:"Saved data successfully"});
