@@ -61,6 +61,10 @@ const hospitalSchema = mongoose.Schema({
 
     password: {
         type:String,
+    },
+
+    refreshToken: {
+        type:String,
     }
 
 })

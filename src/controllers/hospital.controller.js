@@ -4,10 +4,44 @@ import {EmailOTP} from "../models/emailOtp.model.js";
 import bcrypt from 'bcrypt'
 import nodemailer from 'nodemailer'
 import otpGenerator from 'otp-generator'
+import jwt from "jsonwebtoken";
+
+
+const generateRefreshAndAccessToken = async (_id) => {
+
+    const refreshToken = await jwt.sign({
+
+            _id:_id
+
+        },
+        process.env.REFRESH_TOKEN_SECRET,
+        {
+            expiresIn: process.env.H_REFRESH_TOKEN_EXP
+        })
+
+    const accessToken = await jwt.sign({
+            _id:_id
+        },
+        process.env.ACCESS_TOKEN_SECRET,
+        {
+            expiresIn: process.env.H_ACCESS_TOKEN_EXP
+        })
+
+
+    const hospital = await Hospital.findById(_id);
+
+    hospital.refreshToken = refreshToken
+
+    await hospital.save({validateBeforeSave:false})
+
+
+    return { refreshToken , accessToken };
+}
+
 
 
 const sendOTP = async (req, res)=>{
-    console.log(req.body.mail)
+
     if (!req.body.mail) {
         return res.status(400).json({success:false, message:"Provide email"})
     }
@@ -63,6 +97,11 @@ const register = async (req, res)=> {
     }
 
     try{
+        const registeredHospital = await Hospital.findOne({mail});
+
+        if (registeredHospital){
+            return res.status(409).json({success:false, message:"This email is already in use"});
+        }
         const otpVerification = await EmailOTP.findOne({mail});
 
         if (!otpVerification){
@@ -101,11 +140,37 @@ const register = async (req, res)=> {
         console.log("Error registering hospital: ", err)
         return res.status(500).json({success:false, message:"Cannot register!!"})
     }
-
-
 }
 
-const login = () => {
+const login = async (req, res) => {
+
+    try{
+        const {mail, password} = req.body;
+        if (!mail || !password) return res.status(400).json({success: false, message: "Insufficient data"});
+
+        const hospital = await Hospital.findOne({mail});
+        if (!hospital) return res.status(400).json({success: false, message: "Email not registered"});
+
+        const passCheck = await bcrypt.compare(password, hospital.password);
+        if (!passCheck) return res.status(401).json({success: false, message: "Password is incorrect"});
+
+        const {refreshToken, accessToken} = await generateRefreshAndAccessToken(hospital._id);
+
+        const options = {
+            httpOnly: true,
+            secure: true
+        }
+
+        res.status(200)
+            .cookie("accessToken", accessToken, options)
+            .cookie("refreshToken", refreshToken, options)
+            .json({success: true, message: "Logged in successfully"});
+    }
+
+    catch(err){
+        console.log("Error in logging in : ", err);
+        res.status(500).json({success:false, message:"Error in logging in"});
+    }
 
 }
 
@@ -121,4 +186,4 @@ const updateDoctorProfile = () => {
 
 }
 
-export {register, sendOTP}
+export {register, sendOTP, login}

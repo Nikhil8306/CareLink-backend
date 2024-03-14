@@ -8,7 +8,7 @@ import { register, refreshAccessToken, logout , updateProfile } from "../control
 import { sendOTP, verifyOTP } from "../controllers/otp.controller.js";
 
 //Middlewares
-import checkAuth from '../middlewares/checkAuth.middleware.js';
+import {userAuth} from '../middlewares/checkAuth.middleware.js';
 import upload from '../middlewares/multer.middleware.js';
 
 Router.route('/sendOTP')
@@ -21,10 +21,10 @@ Router.route('/refreshToken')
     .get(refreshAccessToken)
 
 Router.route('/logout')
-    .post(checkAuth, logout)
+    .post(userAuth, logout)
 
 Router.route('/updateProfile')
-    .post(checkAuth, upload.single('profile'), updateProfile)
+    .post(userAuth, upload.single('profile'), updateProfile)
 
 
 

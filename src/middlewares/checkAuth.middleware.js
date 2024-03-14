@@ -1,7 +1,8 @@
 import jwt from 'jsonwebtoken'
 import User from '../models/user.model.js'
+import Hospital from "../models/hospital.model.js";
 
-const auth = async (req, res, next)=>{
+const userAuth = async (req, res, next)=>{
 
     try{
         const token = req.cookies.accessToken || req.headers.authorization?.replace("Bearer ", "");
@@ -33,4 +34,34 @@ const auth = async (req, res, next)=>{
 
 }
 
-export default auth;
+const hospitalAuth = async (req, res, next)=>{
+
+    try{
+        const token = req.cookies.accessToken || req.headers.authorization?.replace("Bearer ", "");
+
+        if (!token || token === '') {
+            return res.status(401).json({success: false, message: "Unauthorized"})
+        }
+
+
+        const decodeToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+
+
+        const hospital = await Hospital.findById(decodeToken?._id).select("-password -refreshToken ");
+
+        if (!hospital){
+            return res.status(401).json({success:false, message:"Unauthorized hospital id"})
+        }
+
+        req.hospital = hospital
+
+
+        next();
+    }
+
+    catch(error){
+        res.status(401).json({success:false, message: "Unauthorized request"})
+    }
+
+}
+export {userAuth, hospitalAuth};
