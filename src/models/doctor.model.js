@@ -24,11 +24,11 @@ const doctorSchema = mongoose.Schema({
         default:0
     },
 
-    qualification:[{
+    qualifications:[{
         type:String,
     }],
 
-    specialization:[{
+    specializations:[{
         type:String
     }]
 })

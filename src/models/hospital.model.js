@@ -35,7 +35,7 @@ const hospitalSchema = mongoose.Schema({
         required:true
     }],
 
-    doctorId: [{
+    doctors: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Doctor',
     }],
@@ -45,7 +45,7 @@ const hospitalSchema = mongoose.Schema({
         required: true,
     },
 
-    accountantId: [{
+    accountants: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Accountant'
     }],

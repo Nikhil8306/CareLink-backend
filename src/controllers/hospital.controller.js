@@ -1,4 +1,5 @@
 import Hospital from "../models/hospital.model.js";
+import {Doctor} from "../models/doctor.model.js";
 import {EmailOTP} from "../models/emailOtp.model.js";
 
 import bcrypt from 'bcrypt'
@@ -78,7 +79,6 @@ const sendOTP = async (req, res)=>{
         }
 
         transporter.sendMail(mailOptions);
-
 
         return res.status(200).json({success:true, message:"OTP sent successfully"})
     }
@@ -174,8 +174,36 @@ const login = async (req, res) => {
 
 }
 
-const hireDoctor = () => {
+const hireDoctor = async (req, res) => {
+    // console.log(req.body);
+    try{
+        const {name, age, qualifications, experience, specializations, contact} = req.body;
 
+        if (!name || !age || !qualifications || !experience || !specializations || !contact){
+            return res.status(400).json({success:false, message:"Insufficient data"});
+        }
+
+        const doctor = await Doctor.create({
+            name,
+            age,
+            qualifications,
+            experience,
+            specializations,
+            contact
+        })
+
+        const hospital = await Hospital.findById(req.hospital._id);
+
+        hospital.doctors.push(doctor._id)
+
+        await hospital.save({validateBeforeSave:false})
+
+        return res.status(200).json({success:true, message:"Doctor data saved successfully"})
+    }
+    catch(err){
+        console.log("Error in saving doctor data : ", err);
+        return res.status(500).json({sucess:false, message:"Cannot save doctor data"});
+    }
 }
 
 const removeDoctor = () => {
@@ -186,4 +214,4 @@ const updateDoctorProfile = () => {
 
 }
 
-export {register, sendOTP, login}
+export {register, sendOTP, login, hireDoctor}
