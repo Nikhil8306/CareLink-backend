@@ -8,6 +8,7 @@ import otpGenerator from 'otp-generator'
 import jwt from "jsonwebtoken";
 
 
+
 const generateRefreshAndAccessToken = async (_id) => {
 
     const refreshToken = await jwt.sign({
@@ -206,6 +207,51 @@ const hireDoctor = async (req, res) => {
     }
 }
 
+const refreshAccessToken = async (req, res)=>{
+
+    const oldRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+
+    if (!oldRefreshToken || oldRefreshToken === ''){
+        return res.status(401).json({success:false, message:"Unauthorized"})
+    }
+
+    try{
+        const decodeToken = jwt.verify(oldRefreshToken, process.env.REFRESH_TOKEN_SECRET);
+
+        if (!decodeToken){
+            return res.status(401).json({success:false, message:"Invalid refresh token"})
+        }
+        const hospital = await Hospital.findById(decodeToken._id);
+
+        if (!hospital){
+            return res.status(401).json({success:false, message:"Invalid refresh token"})
+        }
+
+        if (hospital.refreshToken !== oldRefreshToken){
+            return res.status(401).json({success:false, message:"Refresh Token expired or already in use"})
+        }
+
+        const { refreshToken, accessToken } = await generateRefreshAndAccessToken(hospital._id);
+
+        const options = {
+            httpOnly: true,
+            secure: true
+        }
+
+        res.status(200)
+            .cookie("accessToken",accessToken, options)
+            .cookie("refreshToken", refreshToken, options)
+            .json({success:true,
+                message:"Successfully generated new access and refresh token",
+                accessToken:accessToken,
+                refreshToken:refreshToken
+            })
+    }
+    catch (err){
+        console.log(err)
+        return res.status(500).json({success:false, message:"Cannot refresh access token"});
+    }
+}
 const removeDoctor = () => {
 
 }
@@ -214,4 +260,4 @@ const updateDoctorProfile = () => {
 
 }
 
-export {register, sendOTP, login, hireDoctor}
+export {register, sendOTP, login, hireDoctor, refreshAccessToken}

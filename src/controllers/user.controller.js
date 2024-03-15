@@ -73,7 +73,7 @@ const register = async (req, res)=>{
 
 const refreshAccessToken = async (req, res)=>{
 
-    const oldRefreshToken = req.body.refreshToken;
+    const oldRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
 
     if (!oldRefreshToken || oldRefreshToken === ''){
         return res.status(401).json({success:false, message:"Unauthorized"})
