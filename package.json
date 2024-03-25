@@ -5,6 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "index": "node index.js",
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Nikhil Kumar",
@@ -20,6 +22,7 @@
     "mongoose": "^8.2.1",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.12",
+    "nodemon": "^3.1.0",
     "otp-generator": "^4.0.1",
     "twilio": "^4.23.0"
   }

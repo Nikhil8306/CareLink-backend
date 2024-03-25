@@ -65,8 +65,11 @@ const hospitalSchema = mongoose.Schema({
 
     refreshToken: {
         type:String,
-    }
+    },
 
+    governmentScheme :[{
+        type:Object
+    }]
 })
 
 const Hospital = mongoose.model('Hospital', hospitalSchema)

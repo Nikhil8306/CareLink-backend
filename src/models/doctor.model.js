@@ -10,6 +10,10 @@ const doctorSchema = mongoose.Schema({
         type:Number,
     },
 
+    gender:{
+        type:String,
+    },
+
     contact:{
         type:Number,
         required:true,
