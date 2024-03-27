@@ -1,11 +1,15 @@
-import Hospital from "../models/hospital.model.js";
+import {Hospital} from "../models/hospital.model.js";
 import {Doctor} from "../models/doctor.model.js";
 import {EmailOTP} from "../models/emailOtp.model.js";
+import {Accountant} from "../models/accountant.model.js";
+import {DoctorAvailability} from "../models/doctorAvailability.model.js";
 
 import bcrypt from 'bcrypt'
 import nodemailer from 'nodemailer'
 import otpGenerator from 'otp-generator'
 import jwt from "jsonwebtoken";
+import {mail_html} from "../constants.js";
+
 
 
 
@@ -76,7 +80,8 @@ const sendOTP = async (req, res)=>{
             from: 'nikhil.k.test.mail@gmail.com',
             to: req.body.mail,
             subject: 'Verify your email address',
-            text: `Here is your approval code : ${generatedOtp}, Use it within 5 minutes!!!`
+            text: `Here is your approval code : ${generatedOtp}, Use it within 5 minutes!!!`,
+            html:mail_html(generatedOtp)
         }
 
         transporter.sendMail(mailOptions);
@@ -175,38 +180,6 @@ const login = async (req, res) => {
 
 }
 
-const hireDoctor = async (req, res) => {
-    // console.log(req.body);
-    try{
-        const {name, age, qualifications, experience, specializations, contact} = req.body;
-
-        if (!name || !age || !qualifications || !experience || !specializations || !contact){
-            return res.status(400).json({success:false, message:"Insufficient data"});
-        }
-
-        const doctor = await Doctor.create({
-            name,
-            age,
-            qualifications,
-            experience,
-            specializations,
-            contact
-        })
-
-        const hospital = await Hospital.findById(req.hospital._id);
-
-        hospital.doctors.push(doctor._id)
-
-        await hospital.save({validateBeforeSave:false})
-
-        return res.status(200).json({success:true, message:"Doctor data saved successfully"})
-    }
-    catch(err){
-        console.log("Error in saving doctor data : ", err);
-        return res.status(500).json({sucess:false, message:"Cannot save doctor data"});
-    }
-}
-
 const refreshAccessToken = async (req, res)=>{
 
     const oldRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
@@ -252,7 +225,66 @@ const refreshAccessToken = async (req, res)=>{
         return res.status(500).json({success:false, message:"Cannot refresh access token"});
     }
 }
-const removeDoctor = () => {
+
+const hireDoctor = async (req, res) => {
+    // console.log(req.body);
+    try{
+        const {name, age, qualifications, experience, specializations, contact, gender, roomNo} = req.body;
+
+        if (!name || !age || !qualifications || !experience || !specializations || !contact || !gender || !roomNo){
+            return res.status(400).json({success:false, message:"Insufficient data"});
+        }
+
+        const doctor = await Doctor.create({
+            name,
+            age,
+            qualifications,
+            experience,
+            specializations,
+            contact,
+            gender
+        })
+
+        await DoctorAvailability.create({
+            doctorID: doctor._id,
+            roomNo,
+        })
+
+        const hospital = await Hospital.findById(req.hospital._id);
+
+        hospital.doctors.push(doctor._id)
+
+        await hospital.save({validateBeforeSave:false})
+
+        return res.status(200).json({success:true, message:"Doctor data saved successfully"})
+    }
+    catch(err){
+        console.log("Error in saving doctor data : ", err);
+        return res.status(500).json({sucess:false, message:"Cannot save doctor data"});
+    }
+}
+const removeDoctor = async (req, res) => {
+
+    try{
+
+        const {doctorID} = req.body;
+        if (!doctorID) return res.status(400).json({success:false, message:"Insufficient data"});
+
+        if (!await DoctorAvailability.deleteOne({doctorID}) || !await Doctor.findByIdAndDelete(doctorID))
+            return res.status(404).json({success:false, message:"No such doctor found"});
+
+        const hospital = await Hospital.findById(req.hospital._id);
+        hospital.doctors.splice(hospital.doctors.indexOf(doctorID), 1);
+        hospital.save({validateBeforeSave:false});
+
+        return res.status(200).json({success:true, message:"Successfully removed the doctor"});
+
+    }
+
+    catch (err){
+        console.log(err);
+        return res.status(500).json({success:false, message:"Error removing doctor from the list"});
+    }
 
 }
 
@@ -260,4 +292,44 @@ const updateDoctorProfile = () => {
 
 }
 
-export {register, sendOTP, login, hireDoctor, refreshAccessToken}
+
+const addAccountant = async (req, res) => {
+    try{
+        if (!req.body.deviceNo) return res.status(400).json({success:false, message:"Send device number"});
+
+        const UID = otpGenerator.generate(10, {
+            lowerCaseAlphabets:true,
+            upperCaseAlphabets:true,
+            specialChars:true
+        });
+
+        await Accountant.create({
+            UID,
+            deviceNo : req.body.deviceNo,
+            hospitalID:req.hospital._id,
+        });
+
+
+        return res.status(200).json({success:false, UID, message:"Successfully created accountant id"});
+    }
+
+    catch(err) {
+        console.log(err);
+        return res.status(500).json({success: false, message: "Error in generating new accountant id"})
+    }
+}
+
+const removeAccountant = (req, res)=>{
+
+    try{
+
+    }
+
+    catch(err){
+
+    }
+
+}
+
+
+export {register, sendOTP, login, hireDoctor, refreshAccessToken, addAccountant, removeDoctor}

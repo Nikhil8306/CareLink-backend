@@ -45,11 +45,6 @@ const hospitalSchema = mongoose.Schema({
         required: true,
     },
 
-    accountants: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Accountant'
-    }],
-
     photoUrl: {
         type:String
     },
@@ -68,10 +63,9 @@ const hospitalSchema = mongoose.Schema({
     },
 
     governmentScheme :[{
-        type:Object
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'GovernmentScheme'
     }]
 })
 
-const Hospital = mongoose.model('Hospital', hospitalSchema)
-
-export default Hospital;
+export const Hospital = mongoose.model('Hospital', hospitalSchema)

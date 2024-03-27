@@ -16,10 +16,11 @@ app.use(express.static('../public'))
 // Routes
 import userRoute from './routes/user.route.js'
 import hospitalRoute from './routes/hospital.route.js'
+import accountantRoute from "./routes/accountant.route.js";
 
 
 app.use('/user', userRoute)
 app.use('/hospital', hospitalRoute)
-
+app.use('/accountant', accountantRoute)
 
 export default app

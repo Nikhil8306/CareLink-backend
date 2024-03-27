@@ -25,7 +25,6 @@ const sendOTP = (req, res)=>{
         console.log("Something went wrong sending otp : ", error);
         return res.status(500).json({sucess:false, message:"Something went wrong"});
     }
-
 }
 
 const verifyOTP =  ( req, res, next )=>{

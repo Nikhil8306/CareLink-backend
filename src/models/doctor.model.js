@@ -34,7 +34,11 @@ const doctorSchema = mongoose.Schema({
 
     specializations:[{
         type:String
-    }]
+    }],
+
+    password:{
+        type:String,
+    }
 })
 
 export const Doctor = mongoose.model('Doctor',doctorSchema);
