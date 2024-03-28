@@ -1,5 +1,10 @@
 import jwt from 'jsonwebtoken'
 import User from '../models/user.model.js'
+import {Appointment} from "../models/appointment.model.js";
+import {DoctorAvailability} from "../models/doctorAvailability.model.js";
+import {Hospital} from "../models/hospital.model.js";
+
+
 import {uploadOnCloudinary} from "../util/cloudinary.util.js";
 import fs from 'fs'
 
@@ -176,5 +181,28 @@ const updateProfile = async ( req, res )=>{
     res.status(200).json({success:true, message:"Saved data successfully"});
 }
 
+const bookAppointment = async (req, res)=>{
+
+    try{
+
+        const {doctorID, hospitalID} = req.body;
+
+        if (!doctorID || !hospitalID) return res.status(400).json({success:false, message:"Send details"});
+
+        const doctor = await DoctorAvailability.findById(doctorID);
+
+        if (!doctor.isAvailable) return res.status(400).json({success:false, message:"Doctor is currently unavailable"});
+
+        const currToken = doctor.token;
+
+
+
+    }
+
+    catch(err){
+
+    }
+
+}
 
 export { register , refreshAccessToken , logout , updateProfile }

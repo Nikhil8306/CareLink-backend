@@ -36,9 +36,15 @@ const doctorSchema = mongoose.Schema({
         type:String
     }],
 
+    EID:{
+        type:String,
+        unique:true,
+    },
+
     password:{
         type:String,
-    }
+    },
+
 })
 
 export const Doctor = mongoose.model('Doctor',doctorSchema);

@@ -20,7 +20,7 @@ const appointmentSchema = mongoose.Schema({
         type:String,
         required:true,
     },
-
+    
     token:{
         type:Number,
         required:true,

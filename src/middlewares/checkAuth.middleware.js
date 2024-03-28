@@ -88,5 +88,27 @@ const accountantAuth = (req, res, next)=>{
 
 }
 
+const doctorAuth = (req, res, next)=>{
 
-export {userAuth, hospitalAuth, accountantAuth};
+    try{
+
+        const token = req.cookies.accessToken || req.headers.authorization?.replace("Bearer ", "");
+
+        if (!token || token === '') {
+            return res.status(401).json({success: false, message: "Unauthorized"});
+        }
+
+        const decodeToken = jwt.verify(token, process.env.DOCTOR_TOKEN_SECRET);
+
+        req.body.doctorID = decodeToken._id;
+
+        next();
+    }
+    catch(err){
+        console.log(err);
+        return res.status(401).json({success:false, message: "Unauthorized request"});
+    }
+
+}
+
+export {userAuth, hospitalAuth, accountantAuth, doctorAuth};

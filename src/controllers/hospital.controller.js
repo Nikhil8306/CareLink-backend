@@ -11,8 +11,6 @@ import jwt from "jsonwebtoken";
 import {mail_html} from "../constants.js";
 
 
-
-
 const generateRefreshAndAccessToken = async (_id) => {
 
     const refreshToken = await jwt.sign({
@@ -43,7 +41,6 @@ const generateRefreshAndAccessToken = async (_id) => {
 
     return { refreshToken , accessToken };
 }
-
 
 
 const sendOTP = async (req, res)=>{
@@ -88,6 +85,7 @@ const sendOTP = async (req, res)=>{
 
         return res.status(200).json({success:true, message:"OTP sent successfully"})
     }
+
     catch(err){
         console.log("Error in sending the otp to mail : ", err);
         return res.status(500).json({success:false, message:"Error in sending the otp"});
@@ -235,6 +233,12 @@ const hireDoctor = async (req, res) => {
             return res.status(400).json({success:false, message:"Insufficient data"});
         }
 
+        const EID = otpGenerator.generate(6,{
+            lowerCaseAlphabets:true,
+            upperCaseAlphabets:true,
+            specialChars:true,
+        })
+
         const doctor = await Doctor.create({
             name,
             age,
@@ -242,7 +246,8 @@ const hireDoctor = async (req, res) => {
             experience,
             specializations,
             contact,
-            gender
+            gender,
+            EID,
         })
 
         await DoctorAvailability.create({
@@ -252,7 +257,7 @@ const hireDoctor = async (req, res) => {
 
         const hospital = await Hospital.findById(req.hospital._id);
 
-        hospital.doctors.push(doctor._id)
+        hospital.doctors.push(doctor._id);
 
         await hospital.save({validateBeforeSave:false})
 
