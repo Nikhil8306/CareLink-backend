@@ -35,11 +35,6 @@ const hospitalSchema = mongoose.Schema({
         required:true
     }],
 
-    doctors: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Doctor',
-    }],
-
     address: {
         type: String,
         required: true,

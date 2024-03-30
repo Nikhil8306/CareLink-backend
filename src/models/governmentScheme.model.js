@@ -8,12 +8,10 @@ const govSchema = mongoose.Schema({
     about:{
         type:String,
     },
-    ageStart:{
-        type:Number,
+    state:{
+        type:String,
     },
-    ageEnd:{
-        type:Number,
-    }
+
 })
 
 const GovernmentScheme = mongoose.model('GovernmentScheme', govSchema)

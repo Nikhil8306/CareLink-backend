@@ -17,6 +17,11 @@ const doctorAvailabilitySchema = mongoose.Schema({
 
     token:{
         type:Number,
+
+    },
+
+    totalPatients:{
+        type:Number,
         default:0,
     },
 })

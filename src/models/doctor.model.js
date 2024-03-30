@@ -45,6 +45,11 @@ const doctorSchema = mongoose.Schema({
         type:String,
     },
 
+    hospitalID:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Hospital',
+    }
+
 })
 
 export const Doctor = mongoose.model('Doctor',doctorSchema);

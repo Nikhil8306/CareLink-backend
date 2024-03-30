@@ -78,7 +78,11 @@ const accountantAuth = (req, res, next)=>{
         const decodeToken = jwt.verify(token, process.env.HOSPITAL_TOKEN_SECRET);
 
         req.body.hospitalID = decodeToken.hospitalID;
+[
 
+
+
+    ]
         next();
     }
     catch(err){

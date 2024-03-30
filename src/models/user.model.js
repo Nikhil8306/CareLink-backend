@@ -21,7 +21,19 @@ const userSchema = mongoose.Schema({
         type:String
     },
     refreshToken : {
-        type:String
+        type:String,
+    },
+    address:{
+        type:String,
+    },
+    state:{
+      type:String,
+    },
+    aadhaar:{
+        type:String,
+    },
+    BPL:{
+        type:String,
     }
     
 })

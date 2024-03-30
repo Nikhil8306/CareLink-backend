@@ -1,6 +1,7 @@
 import {Accountant} from "../models/accountant.model.js";
 import {Appointment} from "../models/appointment.model.js"
 import {DoctorAvailability} from "../models/doctorAvailability.model.js";
+import {Doctor} from "../models/doctor.model.js";
 
 import jwt from "jsonwebtoken";
 import {Hospital} from "../models/hospital.model.js";
@@ -41,33 +42,30 @@ const bookAppointment = async (req, res)=>{
 
     try {
 
-        const {doctorID, hospitalID, userID, name, age, address, gender} = req.body;
-
-        if (!doctorID || !hospitalID || (!userID && (!name || !age || !address || !gender)))
+        const {doctorID, hospitalID, name, age, address, gender} = req.body;
+        console.log(doctorID, hospitalID);
+        if (!doctorID || !hospitalID || !name || !age || !address || !gender)
             return res.status(400).json({success:false, message:"Please send full details"})
 
         const doctor = await DoctorAvailability.findOne({doctorID});
 
         if (!doctor) return res.status(404).json({success:false, message:"No such doctor found"});
 
-        const hospital = await Hospital.findById(hospitalID);
-        if (hospital.doctors.indexOf(doctorID) === -1) return res.status(400).json({success:false, message:"No such doctor available"});
+        if ((await Doctor.findById(doctorID)).hospitalID != hospitalID) return res.status(400).json({success:false, message:"No such doctor available"});
 
         if (!doctor.isAvailable) return res.status(400).json({success:false, message:"Doctor is currently not available"});
 
-        doctor.token += 1;
+        doctor.totalPatients += 1;
 
         await doctor.save({validateBeforeSave:false});
 
         let details = {
             doctorID,
-            hospitalID,
             name,
             age,
             address,
             gender,
-            userID,
-            token:doctor.token,
+            token:doctor.totalPatients,
         }
 
         await Appointment.create(details);

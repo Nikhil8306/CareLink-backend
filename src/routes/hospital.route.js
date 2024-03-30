@@ -2,7 +2,7 @@ import express from 'express'
 const Router = express.Router()
 
 // Controllers
-import {register, sendOTP, login, hireDoctor, refreshAccessToken, addAccountant, removeDoctor} from "../controllers/hospital.controller.js";
+import {register, sendOTP, login, hireDoctor, refreshAccessToken, addAccountant, removeDoctor, addSchema} from "../controllers/hospital.controller.js";
 
 // Middlewares
 import {hospitalAuth} from "../middlewares/checkAuth.middleware.js";
@@ -28,5 +28,8 @@ Router.route('/removeDoctor')
 
 Router.route('/addAccountant')
     .post(hospitalAuth, addAccountant)
+
+Router.route('/addSchema')
+    .post(hospitalAuth, addSchema)
 
 export default Router

@@ -2,6 +2,9 @@ import bcrypt from "bcrypt";
 import jwt from 'jsonwebtoken'
 
 import {Doctor} from "../models/doctor.model.js";
+import {DoctorAvailability} from "../models/doctorAvailability.model.js";
+import {Appointment} from "../models/appointment.model.js";
+import User from "../models/user.model.js";
 
 const register = async (req, res)=>{
     try{
@@ -62,4 +65,99 @@ const login = async (req, res)=>{
     }
 }
 
-export {register, login }
+const markAvailable = async (req, res)=>{
+
+    try{
+
+        const doctor = await DoctorAvailability.findOne({doctorID:req.body.doctorID});
+        if (!doctor) return res.status(401).json({success:false, message:"Cannot get the doctor"});
+
+        doctor.isAvailable = true;
+        doctor.totalPatients = 0;
+        doctor.token = 1;
+
+        await doctor.save({validateBeforeSave:false});
+
+        return res.status(200).json({success:true, message:"Successfully marked!!!"});
+
+    }
+    catch(err) {
+
+        console.log(err);
+        return res.status(500).json({success:false, message:"Error in marking"});
+
+    }
+
+}
+
+const markUnavailable = async (req, res)=>{
+
+    try{
+
+        const doctor = await DoctorAvailability.findOne({doctorID:req.body.doctorID});
+        if (!doctor) return res.status(401).json({success:false, message:"Cannot get the doctor"});
+
+        doctor.isAvailable = false;
+        await doctor.save({validateBeforeSave:false});
+
+        return res.status(200).json({success:true, message:"Successfully marked!!!"});
+
+    }
+    catch(err) {
+
+        console.log(err);
+        return res.status(500).json({success:false, message:"Error in marking"});
+
+    }
+
+}
+
+const seasonDetails = async (req, res)=>{
+
+    try{
+
+        const details ={}
+        const doctor = DoctorAvailability.findOne({doctorID:req.body.doctorID});
+        details.currToken = doctor.token;
+        details.totalPatients = doctor.totalPatients;
+
+        return res.status(200).json({data:details});
+    }
+    catch(err){
+
+        console.log(err);
+        return res.status(500).json({success:false, message:"Something went wrong"});
+
+    }
+
+}
+
+const getUserDetails = async (req, res)=>{
+    try{
+
+        const {doctorID} = req.body;
+        if (!doctorID) return res.status(400).json({success:false, message:"Error in fetching doctor details"});
+
+        const currToken = (await DoctorAvailability.findOne({doctorID})).token;
+        const appointment = await Appointment.findOne({doctorID, token:currToken});
+        const user = await User.findOne({_id:appointment.userID});
+
+        let details = {
+            name:user.name,
+            age:user.age,
+            address:user.address,
+            gender:user.gender
+        }
+
+        return res.status(200).json({success:true, data:details});
+
+    }
+    catch(err){
+
+        console.log(err);
+        return res.status(500).json({success:false, message:"Something went wrong"});
+
+    }
+}
+
+export {register, login, markUnavailable, markAvailable, seasonDetails};

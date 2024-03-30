@@ -3,6 +3,7 @@ import User from '../models/user.model.js'
 import {Appointment} from "../models/appointment.model.js";
 import {DoctorAvailability} from "../models/doctorAvailability.model.js";
 import {Hospital} from "../models/hospital.model.js";
+import GovernmentScheme from "../models/governmentScheme.model.js";
 
 
 import {uploadOnCloudinary} from "../util/cloudinary.util.js";
@@ -157,7 +158,7 @@ const logout = async (req, res)=>{
 
 const updateProfile = async ( req, res )=>{
 
-    const {name , age, gender } = req.body;
+    const {name , age, gender, address, state, aadhaar, BPL } = req.body;
 
     const user = await User.findById(req.user._id);
 
@@ -173,6 +174,10 @@ const updateProfile = async ( req, res )=>{
     user.age = age;
     user.gender = gender;
     user.profileUrl = upload.url
+    user.address = address
+    user.state = state;
+    if (aadhaar) user.aadhaar = aadhaar;
+    if (BPL) user.BPL = BPL;
 
     await user.save({validateBeforeSave:false})
 
@@ -185,24 +190,111 @@ const bookAppointment = async (req, res)=>{
 
     try{
 
-        const {doctorID, hospitalID} = req.body;
+        const {doctorID, name, age, gender, address} = req.body;
+        if (!doctorID) return res.status(400).json({success:false, message:"Send details"});
 
-        if (!doctorID || !hospitalID) return res.status(400).json({success:false, message:"Send details"});
+        const doctor = await DoctorAvailability.findOne({doctorID});
 
-        const doctor = await DoctorAvailability.findById(doctorID);
-
+        if (!doctor) return res.status(400).json({success:false, message:"No such doctor found"});
         if (!doctor.isAvailable) return res.status(400).json({success:false, message:"Doctor is currently unavailable"});
 
-        const currToken = doctor.token;
+        doctor.totalPatients+=1;
 
+        const token = doctor.totalPatients;
 
+        const details = {
+            name:name||req.user.name,
+            age:age||req.user.age,
+            address:address||req.user.address,
+            gender:gender||req.user.gender,
+            token,
+            doctorID,
+            userID:req.user._id,
+        }
+
+        await Appointment.create(details);
+
+        await doctor.save({validateBeforeSave:true});
+
+        return res.status(200).json({success:true, message:"Successfully appointed the doctor"});
 
     }
 
     catch(err){
 
+        console.log(err);
+        return res.status(500).json({success:false, message:"Error appointing the doctor"});
+
     }
 
 }
 
-export { register , refreshAccessToken , logout , updateProfile }
+const getAppointments = async (req, res)=>{
+
+    try{
+
+        const appointments = await Appointment.find({userID:req.user._id});
+
+        for(let i = 0; i < appointments.length; i++){
+            const doctor = await DoctorAvailability.findOne({doctorID:appointments[i].doctorID});
+            appointments[i]['currToken'] = doctor.token;
+        }
+
+
+        return res.status(200).json({success:true, message:"Successfully fetched the data", data:appointments});
+
+    }
+
+    catch(err){
+
+        console.log(err);
+        return res.status(500).json({success:false, message:"Error in accessing the appointments"});
+
+    }
+
+}
+
+const getScheme = async (req, res) => {
+
+    try{
+
+        const schemes = await GovernmentScheme.find(
+            {
+                $or:[{'state':'all'},{'state':req.user.state}]
+            }
+        )
+
+        return res.status(200).json({success:true, data:schemes});
+
+    }
+
+    catch(err){
+        console.log(err)
+        return res.status(500).json({success:false, message:"Cannot get schemes"});
+
+    }
+
+}
+
+const getHospitals = async (req, res)=>{
+
+    try{
+
+        const {scheme} = req.body;
+        if (!scheme) return res.status(400).json({success:false, message:"Send government scheme"});
+        const hospitals = await Hospital.find({governmentScheme:scheme}).select('_id name about contact address governmentScheme');
+
+        return res.status(200).json({success:true, message:"Successfully retrieved", data:hospitals});
+    }
+    catch(err){
+
+        console.log(err);
+        return res.status(500).json({success:false, message:"Error in fetching the data"});
+
+    }
+
+}
+
+
+
+export { register , refreshAccessToken , logout , updateProfile, bookAppointment, getAppointments, getScheme, getHospitals};

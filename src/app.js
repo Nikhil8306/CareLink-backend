@@ -18,10 +18,12 @@ import userRoute from './routes/user.route.js'
 import hospitalRoute from './routes/hospital.route.js'
 import accountantRoute from "./routes/accountant.route.js";
 import doctorRoute from "./routes/doctor.route.js";
+import governmentRoute from "./routes/government.route.js";
 
 app.use('/user', userRoute)
 app.use('/hospital', hospitalRoute)
 app.use('/accountant', accountantRoute)
 app.use('/doctor', doctorRoute)
+app.use('/government', governmentRoute)
 
 export default app

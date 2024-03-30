@@ -4,7 +4,7 @@ const Router = express.Router()
 
 
 //Controllers
-import { register, refreshAccessToken, logout , updateProfile } from "../controllers/user.controller.js";
+import { register, refreshAccessToken, logout , updateProfile, getAppointments, bookAppointment, getScheme, getHospitals} from "../controllers/user.controller.js";
 import { sendOTP, verifyOTP } from "../controllers/otp.controller.js";
 
 //Middlewares
@@ -26,6 +26,17 @@ Router.route('/logout')
 Router.route('/updateProfile')
     .post(userAuth, upload.single('profile'), updateProfile)
 
+Router.route('/getAppointments')
+    .get(userAuth, getAppointments)
+
+Router.route('/bookAppointment')
+    .post(userAuth, bookAppointment)
+
+Router.route('/getScheme')
+    .get(userAuth, getScheme)
+
+Router.route('/getHospital')
+    .get(userAuth, getHospitals);
 
 
 

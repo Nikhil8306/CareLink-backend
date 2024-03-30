@@ -9,6 +9,7 @@ import nodemailer from 'nodemailer'
 import otpGenerator from 'otp-generator'
 import jwt from "jsonwebtoken";
 import {mail_html} from "../constants.js";
+import GovernmentScheme from "../models/governmentScheme.model.js";
 
 
 const generateRefreshAndAccessToken = async (_id) => {
@@ -248,6 +249,7 @@ const hireDoctor = async (req, res) => {
             contact,
             gender,
             EID,
+            hospitalID:req.hospital._id,
         })
 
         await DoctorAvailability.create({
@@ -255,11 +257,6 @@ const hireDoctor = async (req, res) => {
             roomNo,
         })
 
-        const hospital = await Hospital.findById(req.hospital._id);
-
-        hospital.doctors.push(doctor._id);
-
-        await hospital.save({validateBeforeSave:false})
 
         return res.status(200).json({success:true, message:"Doctor data saved successfully"})
     }
@@ -275,12 +272,12 @@ const removeDoctor = async (req, res) => {
         const {doctorID} = req.body;
         if (!doctorID) return res.status(400).json({success:false, message:"Insufficient data"});
 
-        if (!await DoctorAvailability.deleteOne({doctorID}) || !await Doctor.findByIdAndDelete(doctorID))
-            return res.status(404).json({success:false, message:"No such doctor found"});
+        if (doctorID.hospitalID != req.hospital._id) return res.status(401).json({success:false, message:"No such doctor found"});
 
-        const hospital = await Hospital.findById(req.hospital._id);
-        hospital.doctors.splice(hospital.doctors.indexOf(doctorID), 1);
-        hospital.save({validateBeforeSave:false});
+        await DoctorAvailability.deleteOne({doctorID});
+        await Doctor.findByIdAndDelete(doctorID);
+
+
 
         return res.status(200).json({success:true, message:"Successfully removed the doctor"});
 
@@ -293,7 +290,30 @@ const removeDoctor = async (req, res) => {
 
 }
 
-const updateDoctorProfile = () => {
+const addSchema = async (req, res) => {
+
+    try{
+
+        const {schema} = req.body;
+        if (!schema) return res.status(400).json({success:false, message:"Send schema to add"});
+        if (! (await GovernmentScheme.findById(schema))) return res.status(400).json({success:false, message:"No such schema found"});
+
+        const hospital = await Hospital.findById(req.hospital._id);
+
+        hospital.governmentScheme.push(schema);
+
+        await hospital.save({validateBeforeSave:false});
+
+        return res.status(200).json({success:true, message:"Successfully added the system"});
+
+
+    }
+    catch(err){
+
+        console.log(err);
+        return res.status(500).json({success:false, message:"Error in adding the scheme"});
+
+    }
 
 }
 
@@ -315,7 +335,7 @@ const addAccountant = async (req, res) => {
         });
 
 
-        return res.status(200).json({success:false, UID, message:"Successfully created accountant id"});
+        return res.status(200).json({success:true, UID, message:"Successfully created accountant id"});
     }
 
     catch(err) {
@@ -324,17 +344,7 @@ const addAccountant = async (req, res) => {
     }
 }
 
-const removeAccountant = (req, res)=>{
-
-    try{
-
-    }
-
-    catch(err){
-
-    }
-
-}
 
 
-export {register, sendOTP, login, hireDoctor, refreshAccessToken, addAccountant, removeDoctor}
+
+export {register, sendOTP, login, hireDoctor, refreshAccessToken, addAccountant, removeDoctor, addSchema}
