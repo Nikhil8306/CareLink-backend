@@ -4,7 +4,8 @@ import {Appointment} from "../models/appointment.model.js";
 import {DoctorAvailability} from "../models/doctorAvailability.model.js";
 import {Hospital} from "../models/hospital.model.js";
 import GovernmentScheme from "../models/governmentScheme.model.js";
-
+import {HospitalReport} from "../models/hospitalReport.model.js";
+import {Doctor} from "../models/doctor.model.js";
 
 import {uploadOnCloudinary} from "../util/cloudinary.util.js";
 import fs from 'fs'
@@ -162,19 +163,23 @@ const updateProfile = async ( req, res )=>{
 
     const user = await User.findById(req.user._id);
 
-    if (!req.file?.path) return res.status(500).json({sucess:false, message:"Error uploading profile"})
+    if (!req.file?.path) {
 
-    const upload = await uploadOnCloudinary(req.file?.path)
+        const upload = await uploadOnCloudinary(req.file?.path)
 
-    fs.unlinkSync(req.file?.path)
+        fs.unlinkSync(req.file?.path)
 
-    if (!upload || !upload.url) return res.status(500).json({success:false, message:"Error uploading Profile image"})
+        if (!upload || !upload.url) return res.status(500).json({
+            success: false,
+            message: "Error uploading Profile image"
+        })
+        user.profileUrl = upload.url
+    }
 
     user.name = name;
     user.age = age;
     user.gender = gender;
-    user.profileUrl = upload.url
-    user.address = address
+    user.address = address;
     user.state = state;
     if (aadhaar) user.aadhaar = aadhaar;
     if (BPL) user.BPL = BPL;
@@ -276,7 +281,7 @@ const getScheme = async (req, res) => {
 
 }
 
-const getHospitals = async (req, res)=>{
+const getSchemaHospital = async (req, res)=>{
 
     try{
 
@@ -295,6 +300,63 @@ const getHospitals = async (req, res)=>{
 
 }
 
+const reportHospital = async (req, res)=>{
+
+    try{
+
+        const {hospitalID, description, requestID} = req.body;
+        if (!hospitalID || !description || !requestID) return res.status(400).json({success:false, message:"send full details"});
+
+        await HospitalReport.create({
+            userID: req.user._id,
+            hospitalID,
+            requestID,
+        })
+
+        return res.status(200).json({success:true, message:"Successfully reported the hospital"});
+    }
+    catch(err){
+        console.log(err)
+        return res.status(500).json({success:true, message:"Error in reporting the hospital"})
+    }
+
+}
+
+const getDoctor = async (req, res)=>{
+    try{
+        const doctors = await Doctor.find();
+
+        return res.status(200).json({success:true, data:doctors});
+
+    }
+    catch(err){
+        return res.status(500).json({success:false, message:"Cannot fetch doctor list"});
+    }
+}
+
+const getHospital = async (req, res) =>{
+    try{
+        const hospitals = await Hospital.find();
+
+        return res.status(200).json({success:true, data:hospitals});
+
+    }
+    catch(err){
+        return res.status(500).json({success:false, message:"Cannot fetch hospitals list"});
+    }
+}
 
 
-export { register , refreshAccessToken , logout , updateProfile, bookAppointment, getAppointments, getScheme, getHospitals};
+const verify = async (req, res) =>{
+    const token = req.headers.authorization;
+
+    try{
+        const decodeToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        return res.status(200).json({success:true});
+    }
+    catch(err){
+        return res.status(401).json({success:false});
+    }
+}
+
+export {verify, register , refreshAccessToken , logout , updateProfile, bookAppointment, getAppointments, getScheme, getSchemaHospital, reportHospital, getDoctor, getHospital};

@@ -21,4 +21,4 @@ const hospitalReportSchema = mongoose.Schema({
 
 })
 
-export const HospitalReport = mongoose.Model('HospitalReport', hospitalReportSchema);
+export const HospitalReport = mongoose.model('HospitalReport', hospitalReportSchema);

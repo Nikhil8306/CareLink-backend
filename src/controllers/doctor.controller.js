@@ -5,6 +5,7 @@ import {Doctor} from "../models/doctor.model.js";
 import {DoctorAvailability} from "../models/doctorAvailability.model.js";
 import {Appointment} from "../models/appointment.model.js";
 import User from "../models/user.model.js";
+import {UserMedicine} from "../models/userMedicine.model.js";
 
 const register = async (req, res)=>{
     try{
@@ -160,4 +161,22 @@ const getUserDetails = async (req, res)=>{
     }
 }
 
-export {register, login, markUnavailable, markAvailable, seasonDetails};
+const saveMedicines = async (req, res)=>{
+    try{
+        const {userID, medicines} = req.body;
+
+        if (!userID || !medicines) return res.status(400).json({success:false, message:"Send appropriate data"});
+
+        await UserMedicine.create({
+            userID,
+            medicines
+        })
+
+        return res.status(200).json({success:true, message:"Successfully saved the data"});
+    }
+    catch(err){
+        return res.status(500).json({success:false, message:"Something went wrong"})
+    }
+}
+
+export {register, login, markUnavailable, markAvailable, seasonDetails, getUserDetails, saveMedicines};

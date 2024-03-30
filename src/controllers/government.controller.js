@@ -1,15 +1,20 @@
 import GovernmentScheme from "../models/governmentScheme.model.js";
+import {HospitalReport} from "../models/hospitalReport.model.js";
+import jwt from "jsonwebtoken";
 
-const addScheme = async (req, res)=>{
-    console.log("Someone requested")
-    const {name, about, state} = req.body;
-    await GovernmentScheme.create({
-        name,
-        about,
-        state,
-    })
+const hospitalReport = async (req, res)=>{
+    try{
+        const reports = await HospitalReport.find();
+    }
 
-    res.status(200).json({success:true});
+    catch(err){
+        return res.status(500).json({success:false, message:"Error in getting hospital reports"})
+    }
 }
 
-export {addScheme}
+const hospitalClaim = (req, res)=>{
+
+}
+
+
+export {hospitalClaim, hospitalReport};
