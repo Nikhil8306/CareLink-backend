@@ -13,8 +13,9 @@ import upload from '../middlewares/multer.middleware.js';
 
 Router.route('/verify')
     .get(verify)
+
 Router.route('/sendOTP')
-    .get(sendOTP)
+    .post(sendOTP)
 
 Router.route('/register')
     .post(verifyOTP, register)
@@ -44,6 +45,6 @@ Router.route('/getDoctor')
     .get(userAuth, getDoctor)
 
 Router.route('/getHospital')
-    .get(userAuth, getDoctor)
+    .get(userAuth, getHospital)
 
 export default Router

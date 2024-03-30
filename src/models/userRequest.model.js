@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const userRequest = mongoose.Schema({
+const userRequestSchema = mongoose.Schema({
     userID:{
         type:mongoose.Schema.Types.ObjectId,
         ref:'User',
@@ -13,4 +13,4 @@ const userRequest = mongoose.Schema({
     },
 }, {timestamps:true});
 
-export const UserRequest = mongoose.model('UserRequest', patientRequestSchema);
+export const UserRequest = mongoose.model('UserRequest', userRequestSchema);

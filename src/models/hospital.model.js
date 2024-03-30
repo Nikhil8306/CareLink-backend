@@ -19,7 +19,6 @@ const hospitalSchema = mongoose.Schema({
     mail: {
         type:String,
         required:true,
-        unique:true,
     },
 
     longitude: {

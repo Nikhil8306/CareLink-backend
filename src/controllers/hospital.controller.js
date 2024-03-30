@@ -10,6 +10,10 @@ import otpGenerator from 'otp-generator'
 import jwt from "jsonwebtoken";
 import {mail_html} from "../constants.js";
 import GovernmentScheme from "../models/governmentScheme.model.js";
+import {uploadOnCloudinary} from "../util/cloudinary.util.js";
+import {HospitalClaim} from "../models/hospitalClaim.model.js";
+import {UserRequest} from "../models/userRequest.model.js";
+import fs from "fs";
 
 
 const generateRefreshAndAccessToken = async (_id) => {
@@ -97,7 +101,7 @@ const sendOTP = async (req, res)=>{
 const register = async (req, res)=> {
     let {name, mail, about, operatorName, operatorMobile, contact, address, longitude, latitude, password, otp} = req.body;
 
-    if ([name, mail, about, operatorName, operatorMobile, contact, address, longitude, latitude].includes(undefined)){
+    if ([name, mail, operatorName, operatorMobile, contact, address].includes(undefined)){
         return res.status(400).json({success:false, message:"Please fill up the details"})
     }
 
@@ -240,7 +244,7 @@ const hireDoctor = async (req, res) => {
             specialChars:true,
         })
 
-        const doctor = await Doctor.create({
+        let details = {
             name,
             age,
             qualifications,
@@ -250,13 +254,25 @@ const hireDoctor = async (req, res) => {
             gender,
             EID,
             hospitalID:req.hospital._id,
-        })
+        }
+        if (req.file?.path) {
+
+            const upload = await uploadOnCloudinary(req.file?.path)
+
+            fs.unlinkSync(req.file?.path)
+
+            if (!upload || !upload.url) return res.status(500).json({
+                success: false,
+                message: "Error uploading Profile image"
+            })
+            details.profileUrl = upload.url
+        }
+        const doctor = await Doctor.create(details)
 
         await DoctorAvailability.create({
             doctorID: doctor._id,
             roomNo,
         })
-
 
         return res.status(200).json({success:true, message:"Doctor data saved successfully"})
     }
@@ -290,7 +306,7 @@ const removeDoctor = async (req, res) => {
 
 }
 
-const addSchema = async (req, res) => {
+const addScheme = async (req, res) => {
 
     try{
 
@@ -344,7 +360,42 @@ const addAccountant = async (req, res) => {
     }
 }
 
+const claim = async (req, res)=>{
+
+    try{
+
+        const {hospitalID, requestID, amount, description} = req.body;
+
+        const hospital = await Hospital.findById(hospitalID);
+        if (!hospital) return res.status(400).json({success:false, message:"No such hospital found"});
+        const request = await UserRequest.findById(requestID);
+        if (!request) return res.status(400).json({success:false, message:"No such request available"});
+
+        let billings = [];
+
+        for(const file of req.files){
+            const upload = await uploadOnCloudinary(req.file?.path);;
+            billings.push(upload.url);
+        }
+
+        await HospitalClaim.create({
+            hospitalID,
+            requestID,
+            amount,
+            description,
+            billings
+        })
+
+        return res.status(200).json({success:true, message:"Successfully applied for the claim"});
+
+    }
+    catch(err){
+
+        console.log(err);
+        return res.status(500).json({success:false, message:"Error in claiming"});
+    }
+
+}
 
 
-
-export {register, sendOTP, login, hireDoctor, refreshAccessToken, addAccountant, removeDoctor, addSchema}
+export {register, sendOTP, login, hireDoctor, refreshAccessToken, addAccountant, removeDoctor, addScheme, claim}

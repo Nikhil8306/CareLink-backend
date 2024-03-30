@@ -7,7 +7,7 @@ import {doctorAuth} from "../middlewares/checkAuth.middleware.js";
 
 
 Router.route('/sendOTP')
-    .get(sendDoctorOTP)
+    .post(sendDoctorOTP)
 
 Router.route('/register')
     .post(verifyDoctorOTP, register)

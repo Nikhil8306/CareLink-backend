@@ -18,8 +18,8 @@ const hospitalClaimSchema = mongoose.Schema({
         type:String,
     }],
 
-    patientConsent:{
-        type:String,
+    amount:{
+        type:Number,
     },
 
     description:{
@@ -27,3 +27,5 @@ const hospitalClaimSchema = mongoose.Schema({
     }
 
 })
+
+export const HospitalClaim = mongoose.model('HospitalClaim', hospitalClaimSchema);

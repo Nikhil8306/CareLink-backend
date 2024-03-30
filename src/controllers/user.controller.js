@@ -163,7 +163,7 @@ const updateProfile = async ( req, res )=>{
 
     const user = await User.findById(req.user._id);
 
-    if (!req.file?.path) {
+    if (req.file?.path) {
 
         const upload = await uploadOnCloudinary(req.file?.path)
 
@@ -307,6 +307,7 @@ const reportHospital = async (req, res)=>{
         const {hospitalID, description, requestID} = req.body;
         if (!hospitalID || !description || !requestID) return res.status(400).json({success:false, message:"send full details"});
 
+
         await HospitalReport.create({
             userID: req.user._id,
             hospitalID,
@@ -324,10 +325,13 @@ const reportHospital = async (req, res)=>{
 
 const getDoctor = async (req, res)=>{
     try{
-        const doctors = await Doctor.find();
+        let details = {}
+        if (req.body.category) {
+            details.specializations=req.body.category;
+        }
+        const doctors = await Doctor.find().select("-EID -password");
 
         return res.status(200).json({success:true, data:doctors});
-
     }
     catch(err){
         return res.status(500).json({success:false, message:"Cannot fetch doctor list"});
@@ -352,6 +356,7 @@ const verify = async (req, res) =>{
 
     try{
         const decodeToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+
         return res.status(200).json({success:true});
     }
     catch(err){

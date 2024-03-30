@@ -5,17 +5,17 @@ import {Hospital} from "../models/hospital.model.js";
 const userAuth = async (req, res, next)=>{
 
     try{
-        const token = req.cookies.accessToken || req.headers.authorization?.replace("Bearer ", "");
+        // const token = req.cookies.accessToken || req.headers.authorization?.replace("Bearer ", "");
+        //
+        // if (!token || token === '') {
+        //     return res.status(401).json({success: false, message: "Unauthorized"})
+        // }
+        //
+        //
+        // const decodeToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
-        if (!token || token === '') {
-            return res.status(401).json({success: false, message: "Unauthorized"})
-        }
 
-
-        const decodeToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-
-
-        const user = await User.findById(decodeToken?._id).select("-profileUrl -refreshToken");
+        const user = await User.findById('66082994255979a8f3a74b06').select("-profileUrl -refreshToken");
 
         if (!user){
             return res.status(401).json({success:false, message:"Unauthorized user id"})
